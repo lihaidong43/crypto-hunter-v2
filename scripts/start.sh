@@ -10,7 +10,7 @@ set -euo pipefail
 #
 # 环境：
 #   - 自动加载项目根目录 .env
-#   - 默认 DATABASE_URL=postgresql://postgres@localhost:5432/crypto_hunter
+#   - 默认 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/crypto_hunter
 #   - 默认 RUST_LOG=info
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -26,7 +26,7 @@ if [ -f .env ]; then
 fi
 
 # 默认配置
-export DATABASE_URL="${DATABASE_URL:-postgresql://postgres@localhost:5432/crypto_hunter}"
+export DATABASE_URL="${DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/crypto_hunter}"
 export RUST_LOG="${RUST_LOG:-info}"
 
 TS="$(date +%Y%m%d_%H%M%S)"

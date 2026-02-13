@@ -18,7 +18,7 @@ if [ -f .env ]; then
 fi
 
 # 默认 DATABASE_URL
-DATABASE_URL="${DATABASE_URL:-postgresql://postgres@localhost:5432/crypto_hunter}"
+DATABASE_URL="${DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/crypto_hunter}"
 
 # 提取数据库连接信息
 DB_HOST=$(echo $DATABASE_URL | sed -n 's/.*@\([^:]*\):.*/\1/p')

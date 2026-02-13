@@ -19,7 +19,7 @@ mkdir -p "${LOG_DIR}"
 
 # 默认 DATABASE_URL，如果外部没有显式设置，则使用本地 postgres
 if [[ -z "${DATABASE_URL:-}" ]]; then
-  export DATABASE_URL='postgresql://postgres@localhost:5432/crypto_hunter'
+  export DATABASE_URL='postgresql://postgres:postgres@localhost:5432/crypto_hunter'
 fi
 
 export RUST_LOG="${RUST_LOG:-info}"

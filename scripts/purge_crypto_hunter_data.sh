@@ -6,11 +6,11 @@ set -euo pipefail
 # 2) ./purge_crypto_hunter_data.sh
 #
 # 可选：直接写死
-# DATABASE_URL="postgresql://postgres@localhost:5432/crypto_hunter"
+# DATABASE_URL="postgresql://postgres:postgres@localhost:5432/crypto_hunter"
 
 # 默认 DATABASE_URL，如果外部没有显式设置，则使用本地 postgres
 if [[ -z "${DATABASE_URL:-}" ]]; then
-  export DATABASE_URL='postgresql://postgres@localhost:5432/crypto_hunter'
+  export DATABASE_URL='postgresql://postgres:postgres@localhost:5432/crypto_hunter'
 fi
 
 echo "Target DB: ${DATABASE_URL}"
