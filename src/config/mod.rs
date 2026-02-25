@@ -93,7 +93,9 @@ impl Default for AppConfig {
     fn default() -> Self {
         Self {
             database: DatabaseConfig {
-                url: "postgresql://postgres@localhost:5432/crypto_hunter".to_string(),
+                // 优先从环境变量读取，否则使用默认值（包含密码）
+                url: std::env::var("DATABASE_URL")
+                    .unwrap_or_else(|_| "postgresql://postgres:postgres@localhost:5432/crypto_hunter".to_string()),
             },
             exchanges: vec![
                 ExchangeConfig {

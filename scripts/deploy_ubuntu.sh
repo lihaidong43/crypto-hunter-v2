@@ -187,9 +187,19 @@ set -euo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "${DIR}"
 mkdir -p logs
+
+# 先加载 .env 文件
+if [ -f "${DIR}/.env" ]; then
+  set -a
+  . "${DIR}/.env"
+  set +a
+fi
+
+# 再设置默认值（如果 .env 中没有设置）
 export DATABASE_URL="${DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/crypto_hunter}"
 export RUST_LOG="${RUST_LOG:-info}"
-if [ -f .env ]; then set -a; . ./.env; set +a; fi
+
+echo "DATABASE_URL=${DATABASE_URL}"
 TS=$(date +%Y%m%d_%H%M%S)
 exec "${DIR}/bin/crypto-hunter" 2>&1 | tee -a "logs/crypto-hunter_${TS}.log"
 '
@@ -203,9 +213,19 @@ set -euo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "${DIR}"
 mkdir -p logs
+
+# 先加载 .env 文件
+if [ -f "${DIR}/.env" ]; then
+  set -a
+  . "${DIR}/.env"
+  set +a
+fi
+
+# 再设置默认值（如果 .env 中没有设置）
 export DATABASE_URL="${DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/crypto_hunter}"
 export RUST_LOG="${RUST_LOG:-info}"
-if [ -f .env ]; then set -a; . ./.env; set +a; fi
+
+echo "DATABASE_URL=${DATABASE_URL}"
 TS=$(date +%Y%m%d_%H%M%S)
 exec "${DIR}/bin/arbitrage-monitor" 2>&1 | tee -a "logs/arbitrage-monitor_${TS}.log"
 '
@@ -219,9 +239,19 @@ set -euo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "${DIR}"
 mkdir -p logs
+
+# 先加载 .env 文件
+if [ -f "${DIR}/.env" ]; then
+  set -a
+  . "${DIR}/.env"
+  set +a
+fi
+
+# 再设置默认值
 export DATABASE_URL="${DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/crypto_hunter}"
 export RUST_LOG="${RUST_LOG:-info}"
-if [ -f .env ]; then set -a; . ./.env; set +a; fi
+
+echo "DATABASE_URL=${DATABASE_URL}"
 TS=$(date +%Y%m%d_%H%M%S)
 exec "${DIR}/bin/pair-collector" 2>&1 | tee -a "logs/pair-collector_${TS}.log"
 '
@@ -235,10 +265,19 @@ set -euo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "${DIR}"
 mkdir -p logs
+
+# 先加载 .env 文件
+if [ -f "${DIR}/.env" ]; then
+  set -a
+  . "${DIR}/.env"
+  set +a
+fi
+
+# 再设置默认值（如果 .env 中没有设置）
 export DATABASE_URL="${DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/crypto_hunter}"
 export RUST_LOG="${RUST_LOG:-info}"
-if [ -f .env ]; then set -a; . ./.env; set +a; fi
 
+echo "DATABASE_URL=${DATABASE_URL}"
 echo "启动交易对同步..."
 "${DIR}/bin/pair-collector" &
 PAIR_PID=$!
