@@ -195,13 +195,14 @@ if [ -f "${DIR}/.env" ]; then
   set +a
 fi
 
-# 再设置默认值（如果 .env 中没有设置）
+# 生产环境默认使用 warn 级别，减少日志量
 export DATABASE_URL="${DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/crypto_hunter}"
-export RUST_LOG="${RUST_LOG:-info}"
+export RUST_LOG="${RUST_LOG:-crypto_hunter=info,warn}"
 
-echo "DATABASE_URL=${DATABASE_URL}"
 TS=$(date +%Y%m%d_%H%M%S)
-exec "${DIR}/bin/crypto-hunter" 2>&1 | tee -a "logs/crypto-hunter_${TS}.log"
+LOG_FILE="${DIR}/logs/crypto-hunter_${TS}.log"
+echo "启动 crypto-hunter，日志: ${LOG_FILE}"
+exec "${DIR}/bin/crypto-hunter" >> "${LOG_FILE}" 2>&1
 '
 echo "${RUN_SH_CONTENT}" | run_inst tee "${DEPLOY_DIR}/run.sh" >/dev/null
 run_inst chmod +x "${DEPLOY_DIR}/run.sh"
@@ -221,13 +222,14 @@ if [ -f "${DIR}/.env" ]; then
   set +a
 fi
 
-# 再设置默认值（如果 .env 中没有设置）
+# 生产环境默认使用 warn 级别
 export DATABASE_URL="${DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/crypto_hunter}"
-export RUST_LOG="${RUST_LOG:-info}"
+export RUST_LOG="${RUST_LOG:-crypto_hunter=info,warn}"
 
-echo "DATABASE_URL=${DATABASE_URL}"
 TS=$(date +%Y%m%d_%H%M%S)
-exec "${DIR}/bin/arbitrage-monitor" 2>&1 | tee -a "logs/arbitrage-monitor_${TS}.log"
+LOG_FILE="${DIR}/logs/arbitrage-monitor_${TS}.log"
+echo "启动 arbitrage-monitor，日志: ${LOG_FILE}"
+exec "${DIR}/bin/arbitrage-monitor" >> "${LOG_FILE}" 2>&1
 '
 echo "${RUN_ARB_CONTENT}" | run_inst tee "${DEPLOY_DIR}/run_arbitrage.sh" >/dev/null
 run_inst chmod +x "${DEPLOY_DIR}/run_arbitrage.sh"
@@ -247,13 +249,14 @@ if [ -f "${DIR}/.env" ]; then
   set +a
 fi
 
-# 再设置默认值
+# 生产环境默认使用 warn 级别
 export DATABASE_URL="${DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/crypto_hunter}"
-export RUST_LOG="${RUST_LOG:-info}"
+export RUST_LOG="${RUST_LOG:-pair_collector=info,warn}"
 
-echo "DATABASE_URL=${DATABASE_URL}"
 TS=$(date +%Y%m%d_%H%M%S)
-exec "${DIR}/bin/pair-collector" 2>&1 | tee -a "logs/pair-collector_${TS}.log"
+LOG_FILE="${DIR}/logs/pair-collector_${TS}.log"
+echo "启动 pair-collector，日志: ${LOG_FILE}"
+exec "${DIR}/bin/pair-collector" >> "${LOG_FILE}" 2>&1
 '
 echo "${RUN_PAIR_CONTENT}" | run_inst tee "${DEPLOY_DIR}/run_pairs.sh" >/dev/null
 run_inst chmod +x "${DEPLOY_DIR}/run_pairs.sh"
@@ -273,38 +276,46 @@ if [ -f "${DIR}/.env" ]; then
   set +a
 fi
 
-# 再设置默认值（如果 .env 中没有设置）
+# 生产环境配置
 export DATABASE_URL="${DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/crypto_hunter}"
-export RUST_LOG="${RUST_LOG:-info}"
+export RUST_LOG="${RUST_LOG:-crypto_hunter=info,pair_collector=info,arbitrage_monitor=info,warn}"
 
-echo "DATABASE_URL=${DATABASE_URL}"
+TS=$(date +%Y%m%d_%H%M%S)
+PAIR_LOG="${DIR}/logs/pair-collector_${TS}.log"
+HUNTER_LOG="${DIR}/logs/crypto-hunter_${TS}.log"
+ARB_LOG="${DIR}/logs/arbitrage-monitor_${TS}.log"
+
 echo "启动交易对同步..."
-"${DIR}/bin/pair-collector" &
+"${DIR}/bin/pair-collector" >> "${PAIR_LOG}" 2>&1 &
 PAIR_PID=$!
-echo "  pair-collector PID: ${PAIR_PID}"
+echo "  pair-collector PID: ${PAIR_PID}, 日志: ${PAIR_LOG}"
 
 # 等待交易对同步完成
 sleep 10
 
 echo "启动数据采集器..."
-"${DIR}/bin/crypto-hunter" &
+"${DIR}/bin/crypto-hunter" >> "${HUNTER_LOG}" 2>&1 &
 HUNTER_PID=$!
-echo "  crypto-hunter PID: ${HUNTER_PID}"
+echo "  crypto-hunter PID: ${HUNTER_PID}, 日志: ${HUNTER_LOG}"
 
 echo "启动套利监控..."
-"${DIR}/bin/arbitrage-monitor" &
+"${DIR}/bin/arbitrage-monitor" >> "${ARB_LOG}" 2>&1 &
 ARB_PID=$!
-echo "  arbitrage-monitor PID: ${ARB_PID}"
+echo "  arbitrage-monitor PID: ${ARB_PID}, 日志: ${ARB_LOG}"
+
+# 保存 PID 到文件，方便停止
+echo "${PAIR_PID}" > "${DIR}/logs/pair-collector.pid"
+echo "${HUNTER_PID}" > "${DIR}/logs/crypto-hunter.pid"
+echo "${ARB_PID}" > "${DIR}/logs/arbitrage-monitor.pid"
 
 echo ""
-echo "所有服务已启动:"
-echo "  pair-collector:     ${PAIR_PID}"
-echo "  crypto-hunter:      ${HUNTER_PID}"
-echo "  arbitrage-monitor:  ${ARB_PID}"
+echo "所有服务已启动（后台运行，日志输出到文件）"
+echo "  pair-collector:     PID=${PAIR_PID}"
+echo "  crypto-hunter:      PID=${HUNTER_PID}"
+echo "  arbitrage-monitor:  PID=${ARB_PID}"
 echo ""
-echo "停止所有服务: kill ${PAIR_PID} ${HUNTER_PID} ${ARB_PID}"
-
-wait
+echo "查看日志: tail -f ${DIR}/logs/*.log"
+echo "停止服务: kill ${PAIR_PID} ${HUNTER_PID} ${ARB_PID}"
 '
 echo "${RUN_ALL_CONTENT}" | run_inst tee "${DEPLOY_DIR}/run_all.sh" >/dev/null
 run_inst chmod +x "${DEPLOY_DIR}/run_all.sh"
