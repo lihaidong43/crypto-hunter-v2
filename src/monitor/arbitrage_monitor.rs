@@ -227,10 +227,7 @@ impl ArbitrageMonitor {
                 symbol, ex, self.ws_snapshot_max_age_seconds
             );
             warn!("{}", msg.replace('\n', " | "));
-            // Telegram 未配置时 notifier 可能返回错误，这里吞掉即可
-            if let Err(e) = self.notifier.send_message(&msg).await {
-                debug!("Telegram 告警发送失败（可能未配置）: {}", e);
-            }
+            // 告警只记录日志，不推送 Telegram
 
             self.last_notified.insert(key, now);
         }
